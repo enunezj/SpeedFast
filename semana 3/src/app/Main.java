@@ -1,18 +1,18 @@
 package app;
 
+import controller.ControladorDeEnvios;
 import model.Pedido;
 import model.PedidoComida;
 import model.PedidoEncomienda;
 import model.PedidoExpress;
 
-import java.util.ArrayList;
-
 public class Main {
 
     public static void main(String[] args) {
 
-        // Lista general de pedidos que fueron despachados.
-        ArrayList<Pedido> historialEntregas = new ArrayList<>();
+        ControladorDeEnvios controlador =
+                new ControladorDeEnvios();
+
 
         System.out.println("==================================");
         System.out.println("        SISTEMA SPEEDFAST");
@@ -20,8 +20,8 @@ public class Main {
 
 
         /*
-         * CASO 1: Pedido de comida.
-         * Asignación automática y despacho.
+         * CASO 1
+         * Pedido de comida con asignación automática.
          */
 
         System.out.println("\n----------------------------------");
@@ -38,29 +38,24 @@ public class Main {
         comida.mostrarResumen();
 
         System.out.println("\nReservando pedido...");
-        comida.reservar();
-
-        System.out.println("\nAsignando repartidor automáticamente...");
-        comida.asignarRepartidor();
+        controlador.reservarPedido(comida);
 
         System.out.println(
-                "Tiempo estimado de entrega: "
-                        + comida.calcularTiempoEntrega()
-                        + " minutos."
+                "\nAsignando repartidor automáticamente..."
         );
+        controlador.asignarRepartidor(comida);
+
+        controlador.mostrarTiempoEstimado(comida);
 
         System.out.println("\nDespachando pedido...");
-        comida.despachar();
+        controlador.despacharPedido(comida);
 
-        // Se agrega al historial general porque fue despachado.
-        historialEntregas.add(comida);
-
-        comida.verHistorial();
+        controlador.mostrarHistorialPedido(comida);
 
 
         /*
-         * CASO 2: Pedido de encomienda.
-         * Asignación manual y despacho.
+         * CASO 2
+         * Pedido de encomienda con asignación manual.
          */
 
         System.out.println("\n==================================");
@@ -77,29 +72,29 @@ public class Main {
         encomienda.mostrarResumen();
 
         System.out.println("\nReservando pedido...");
-        encomienda.reservar();
-
-        System.out.println("\nAsignando repartidor manualmente...");
-        encomienda.asignarRepartidor("Daniel - Camioneta");
+        controlador.reservarPedido(encomienda);
 
         System.out.println(
-                "Tiempo estimado de entrega: "
-                        + encomienda.calcularTiempoEntrega()
-                        + " minutos."
+                "\nAsignando repartidor manualmente..."
         );
 
+        controlador.asignarRepartidor(
+                encomienda,
+                "Daniel"
+        );
+
+        controlador.mostrarTiempoEstimado(encomienda);
+
         System.out.println("\nDespachando pedido...");
-        encomienda.despachar();
+        controlador.despacharPedido(encomienda);
 
-        // Se agrega al historial general porque fue despachado.
-        historialEntregas.add(encomienda);
-
-        encomienda.verHistorial();
+        controlador.mostrarHistorialPedido(encomienda);
 
 
         /*
-         * CASO 3: Pedido express.
-         * Asignación automática y cancelación.
+         * CASO 3
+         * Pedido express con asignación automática
+         * y posterior cancelación.
          */
 
         System.out.println("\n==================================");
@@ -116,37 +111,29 @@ public class Main {
         express.mostrarResumen(true);
 
         System.out.println("\nReservando pedido...");
-        express.reservar();
-
-        System.out.println("\nAsignando repartidor automáticamente...");
-        express.asignarRepartidor();
+        controlador.reservarPedido(express);
 
         System.out.println(
-                "Tiempo estimado de entrega: "
-                        + express.calcularTiempoEntrega()
-                        + " minutos."
+                "\nAsignando repartidor automáticamente..."
         );
+        controlador.asignarRepartidor(express);
 
-        System.out.println("\nEl cliente solicita cancelar el pedido.");
-        express.cancelar();
+        controlador.mostrarTiempoEstimado(express);
 
-        express.verHistorial();
+        System.out.println(
+                "\nEl cliente solicita cancelar el pedido."
+        );
+        controlador.cancelarPedido(express);
+
+        controlador.mostrarHistorialPedido(express);
 
 
         /*
-         * HISTORIAL GENERAL DE ENTREGAS
+         * El historial general ahora es responsabilidad
+         * del controlador.
          */
 
-        System.out.println("\n==================================");
-        System.out.println(" HISTORIAL DE ENTREGAS REALIZADAS");
-        System.out.println("==================================");
-
-        for (Pedido pedido : historialEntregas) {
-
-            pedido.mostrarResumen();
-
-            System.out.println("----------------------------------");
-        }
+        controlador.mostrarHistorialEntregas();
 
 
         System.out.println("\n==================================");

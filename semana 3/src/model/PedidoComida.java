@@ -1,6 +1,5 @@
 package model;
 
-// Representa un pedido de comida.
 public class PedidoComida extends Pedido {
 
     public PedidoComida(
@@ -13,28 +12,34 @@ public class PedidoComida extends Pedido {
     }
 
 
-    // SOBRESCRITURA:
-    // Los pedidos de comida se asignan automáticamente
-    // a un repartidor en moto.
+    // Asignación automática para pedidos de comida.
     @Override
     public void asignarRepartidor() {
 
-        String nombre = "Carlos - Moto";
+        if (puedeAsignarRepartidor()) {
 
-        setRepartidor(nombre);
-
-        registrarEvento(
-                "Repartidor automático asignado: " + nombre
-        );
-
-        System.out.println(
-                "Repartidor automático asignado: " + nombre
-        );
+            registrarAsignacion(
+                    "Carlos - Moto",
+                    "automáticamente"
+            );
+        }
     }
 
 
-    // SOBRESCRITURA:
-    // Regla propia para calcular el tiempo del pedido de comida.
+    // Asignación manual especializada para pedidos de comida.
+    @Override
+    public void asignarRepartidor(String nombre) {
+
+        if (puedeAsignarRepartidor()) {
+
+            registrarAsignacion(
+                    nombre + " - Moto",
+                    "manualmente"
+            );
+        }
+    }
+
+
     @Override
     public int calcularTiempoEntrega() {
 

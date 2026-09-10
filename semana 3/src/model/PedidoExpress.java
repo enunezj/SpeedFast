@@ -1,6 +1,5 @@
 package model;
 
-// Representa una compra o pedido express.
 public class PedidoExpress extends Pedido {
 
     public PedidoExpress(
@@ -13,26 +12,34 @@ public class PedidoExpress extends Pedido {
     }
 
 
-    // SOBRESCRITURA:
-    // Los pedidos express utilizan un repartidor especializado.
+    // Asignación automática para pedidos express.
     @Override
     public void asignarRepartidor() {
 
-        String nombre = "Sofia - Express";
+        if (puedeAsignarRepartidor()) {
 
-        setRepartidor(nombre);
-
-        registrarEvento(
-                "Repartidor automático asignado: " + nombre
-        );
-
-        System.out.println(
-                "Repartidor automático asignado: " + nombre
-        );
+            registrarAsignacion(
+                    "Sofia - Express",
+                    "automáticamente"
+            );
+        }
     }
 
 
-    // El pedido express tiene una entrega más rápida.
+    // Asignación manual especializada para pedidos express.
+    @Override
+    public void asignarRepartidor(String nombre) {
+
+        if (puedeAsignarRepartidor()) {
+
+            registrarAsignacion(
+                    nombre + " - Express",
+                    "manualmente"
+            );
+        }
+    }
+
+
     @Override
     public int calcularTiempoEntrega() {
 
