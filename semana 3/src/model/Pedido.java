@@ -5,82 +5,226 @@ import interfaces.Despachable;
 import interfaces.Rastreable;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public abstract class Pedido implements Despachable, Cancelable, Rastreable {
 
-    private final int codigo;
+    // Atributos solicitados en la actividad actual.
+    private int id;
+    private String direccionEntrega;
+    private EstadoPedido estado;
+
+    // Atributos conservados de las actividades anteriores.
     private final String cliente;
-    private final String direccion;
     private final double distanciaKm;
-
     private String repartidor;
-    private String estado;
 
-    private final ArrayList<String> historial;
+    private boolean reservado;
+    private boolean cancelado;
 
-    public Pedido(int codigo, String cliente, String direccion, double distanciaKm) {
+    private final List<String> historial;
 
-        this.codigo = codigo;
-        this.cliente = cliente;
-        this.direccion = direccion;
-        this.distanciaKm = distanciaKm;
 
-        this.repartidor = "Sin asignar";
-        this.estado = "Creado";
+    // Constructor simplificado para la simulación concurrente.
+    public Pedido(int id, String direccionEntrega) {
 
-        this.historial = new ArrayList<>();
+        this(
+                id,
+                "Sin cliente registrado",
+                direccionEntrega,
+                0
+        );
     }
 
 
-    // Asignación automática.
+    // Constructor conservado de la actividad anterior.
+    public Pedido(
+            int id,
+            String cliente,
+            String direccionEntrega,
+            double distanciaKm) {
+
+        this.historial = new ArrayList<>();
+
+        setId(id);
+        setDireccionEntrega(direccionEntrega);
+
+        this.cliente = cliente;
+        this.distanciaKm = distanciaKm;
+
+        this.repartidor = "Sin asignar";
+        this.estado = EstadoPedido.PENDIENTE;
+
+        this.reservado = false;
+        this.cancelado = false;
+
+        registrarEvento(
+                "Estado inicial: PENDIENTE"
+        );
+    }
+
+
+    public int getId() {
+
+        return id;
+    }
+
+
+    public final void setId(int id) {
+
+        this.id = id;
+    }
+
+
+    public String getDireccionEntrega() {
+
+        return direccionEntrega;
+    }
+
+
+    public final void setDireccionEntrega(
+            String direccionEntrega) {
+
+        this.direccionEntrega = direccionEntrega;
+    }
+
+
+    public EstadoPedido getEstado() {
+
+        return estado;
+    }
+
+
+    public void setEstado(
+            EstadoPedido nuevoEstado) {
+
+        if (nuevoEstado == null) {
+
+            throw new IllegalArgumentException(
+                    "El estado no puede ser nulo."
+            );
+        }
+
+        this.estado = nuevoEstado;
+
+        registrarEvento(
+                "Estado actualizado a " + nuevoEstado
+        );
+    }
+
+
+    // Firma solicitada expresamente en la actividad.
+    public void setEstado(String nuevoEstado) {
+
+        if (nuevoEstado == null) {
+
+            throw new IllegalArgumentException(
+                    "El estado no puede ser nulo."
+            );
+        }
+
+        EstadoPedido estadoConvertido =
+                EstadoPedido.valueOf(
+                        nuevoEstado
+                                .trim()
+                                .toUpperCase(Locale.ROOT)
+                );
+
+        setEstado(estadoConvertido);
+    }
+
+
     public abstract void asignarRepartidor();
 
 
-    // Asignación manual.
-    // Sobrecarga de la operación anterior y comportamiento
-    // especializado por cada tipo de pedido.
-    public abstract void asignarRepartidor(String nombre);
+    public abstract void asignarRepartidor(
+            String nombre);
 
 
-    // Cada tipo de pedido calcula su propio tiempo.
     public abstract int calcularTiempoEntrega();
 
 
     public void reservar() {
 
-        if (estado.equals("Creado")) {
-
-            estado = "Reservado";
-
-            registrarEvento("Pedido reservado");
+        if (cancelado) {
 
             System.out.println(
-                    "Pedido " + codigo + " reservado correctamente."
+                    "No se puede reservar un pedido cancelado."
             );
 
-        } else {
-
-            System.out.println(
-                    "El pedido " + codigo
-                            + " no se encuentra disponible para reserva."
-            );
+            return;
         }
+
+        if (estado == EstadoPedido.ENTREGADO) {
+
+            System.out.println(
+                    "No se puede reservar un pedido ya entregado."
+            );
+
+            return;
+        }
+
+        if (reservado) {
+
+            System.out.println(
+                    "El pedido "
+                            + id
+                            + " ya se encuentra reservado."
+            );
+
+            return;
+        }
+
+        reservado = true;
+
+        registrarEvento(
+                "Pedido reservado"
+        );
+
+        System.out.println(
+                "Pedido "
+                        + id
+                        + " reservado correctamente."
+        );
     }
 
 
     public void mostrarResumen() {
 
-        System.out.println("Código: " + codigo);
-        System.out.println("Cliente: " + cliente);
-        System.out.println("Dirección: " + direccion);
-        System.out.println("Distancia: " + distanciaKm + " km");
-        System.out.println("Repartidor: " + repartidor);
-        System.out.println("Estado: " + estado);
+        System.out.println(
+                "ID: " + id
+        );
+
+        System.out.println(
+                "Cliente: " + cliente
+        );
+
+        System.out.println(
+                "Dirección de entrega: "
+                        + direccionEntrega
+        );
+
+        System.out.println(
+                "Distancia: "
+                        + distanciaKm
+                        + " km"
+        );
+
+        System.out.println(
+                "Repartidor: "
+                        + repartidor
+        );
+
+        System.out.println(
+                "Estado: "
+                        + estado
+        );
     }
 
 
-    // Segunda sobrecarga funcional.
-    public void mostrarResumen(boolean mostrarTiempo) {
+    public void mostrarResumen(
+            boolean mostrarTiempo) {
 
         mostrarResumen();
 
@@ -98,79 +242,99 @@ public abstract class Pedido implements Despachable, Cancelable, Rastreable {
     @Override
     public void despachar() {
 
-        switch (estado) {
+        if (cancelado) {
 
-            case "Cancelado":
-                System.out.println(
-                        "No se puede despachar un pedido cancelado."
-                );
-                break;
+            System.out.println(
+                    "No se puede despachar un pedido cancelado."
+            );
 
-            case "Creado":
-                System.out.println(
-                        "El pedido debe ser reservado antes de ser despachado."
-                );
-                break;
-
-            case "Despachado":
-                System.out.println(
-                        "El pedido " + codigo + " ya fue despachado."
-                );
-                break;
-
-            default:
-
-                if (repartidor.equals("Sin asignar")) {
-
-                    System.out.println(
-                            "El pedido debe tener un repartidor antes de ser despachado."
-                    );
-
-                    return;
-                }
-
-                estado = "Despachado";
-
-                registrarEvento("Pedido despachado");
-
-                System.out.println(
-                        "Pedido " + codigo
-                                + " despachado correctamente."
-                );
-                break;
+            return;
         }
+
+        if (estado == EstadoPedido.ENTREGADO) {
+
+            System.out.println(
+                    "El pedido "
+                            + id
+                            + " ya fue entregado."
+            );
+
+            return;
+        }
+
+        if (estado == EstadoPedido.EN_REPARTO) {
+
+            System.out.println(
+                    "El pedido "
+                            + id
+                            + " ya está en reparto."
+            );
+
+            return;
+        }
+
+        if (repartidor.equals("Sin asignar")) {
+
+            System.out.println(
+                    "El pedido debe tener un repartidor asignado."
+            );
+
+            return;
+        }
+
+        setEstado("EN_REPARTO");
+
+        System.out.println(
+                "Pedido "
+                        + id
+                        + " enviado a reparto."
+        );
     }
 
 
     @Override
     public void cancelar() {
 
-        switch (estado) {
+        if (estado == EstadoPedido.EN_REPARTO) {
 
-            case "Despachado":
-                System.out.println(
-                        "No se puede cancelar un pedido que ya fue despachado."
-                );
-                break;
+            System.out.println(
+                    "No se puede cancelar un pedido que está en reparto."
+            );
 
-            case "Cancelado":
-                System.out.println(
-                        "El pedido " + codigo
-                                + " ya se encuentra cancelado."
-                );
-                break;
-
-            default:
-                estado = "Cancelado";
-
-                registrarEvento("Pedido cancelado");
-
-                System.out.println(
-                        "Pedido " + codigo
-                                + " cancelado correctamente."
-                );
-                break;
+            return;
         }
+
+        if (estado == EstadoPedido.ENTREGADO) {
+
+            System.out.println(
+                    "No se puede cancelar un pedido entregado."
+            );
+
+            return;
+        }
+
+        if (cancelado) {
+
+            System.out.println(
+                    "El pedido "
+                            + id
+                            + " ya se encuentra cancelado."
+            );
+
+            return;
+        }
+
+        cancelado = true;
+
+        registrarEvento(
+                "Pedido cancelado"
+        );
+
+        System.out.println(
+                "Pedido "
+                        + id
+                        + " cancelado correctamente."
+        );
     }
 
 
@@ -178,60 +342,46 @@ public abstract class Pedido implements Despachable, Cancelable, Rastreable {
     public void verHistorial() {
 
         System.out.println(
-                "\nHistorial del pedido " + codigo + ":"
+                "Historial del pedido #"
+                        + id
+                        + ":"
         );
-
-        if (historial.isEmpty()) {
-
-            System.out.println(
-                    "- No existen movimientos registrados."
-            );
-
-            return;
-        }
 
         for (String evento : historial) {
 
-            System.out.println("- " + evento);
+            System.out.println(
+                    "- " + evento
+            );
         }
     }
 
 
-    // Comprueba si el pedido está preparado para recibir un repartidor.
     protected boolean puedeAsignarRepartidor() {
 
-        switch (estado) {
+        if (cancelado) {
 
-            case "Creado" -> {
-                System.out.println(
-                        "El pedido debe ser reservado antes de asignar un repartidor."
-                );
-                return false;
-            }
+            System.out.println(
+                    "No se puede asignar un repartidor "
+                            + "a un pedido cancelado."
+            );
 
-            case "Cancelado" -> {
-                System.out.println(
-                        "No se puede asignar un repartidor a un pedido cancelado."
-                );
-                return false;
-            }
-
-            case "Despachado" -> {
-                System.out.println(
-                        "No se puede cambiar el repartidor de un pedido despachado."
-                );
-                return false;
-            }
-
-            default -> {
-                return true;
-            }
+            return false;
         }
+
+        if (estado == EstadoPedido.ENTREGADO) {
+
+            System.out.println(
+                    "No se puede cambiar el repartidor "
+                            + "de un pedido entregado."
+            );
+
+            return false;
+        }
+
+        return true;
     }
 
 
-    // Función común utilizada por las subclases
-    // para registrar una asignación.
     protected void registrarAsignacion(
             String nombreRepartidor,
             String tipoAsignacion) {
@@ -254,7 +404,8 @@ public abstract class Pedido implements Despachable, Cancelable, Rastreable {
     }
 
 
-    protected void registrarEvento(String evento) {
+    protected void registrarEvento(
+            String evento) {
 
         historial.add(evento);
     }
@@ -266,8 +417,14 @@ public abstract class Pedido implements Despachable, Cancelable, Rastreable {
     }
 
 
-    public boolean estaDespachado() {
+    @Override
+    public String toString() {
 
-        return estado.equals("Despachado");
+        return "Pedido{" +
+                "id=" + id +
+                ", direccionEntrega='" +
+                direccionEntrega + '\'' +
+                ", estado=" + estado +
+                '}';
     }
 }

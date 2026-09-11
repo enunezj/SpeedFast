@@ -3,16 +3,31 @@ package model;
 public class PedidoEncomienda extends Pedido {
 
     public PedidoEncomienda(
-            int codigo,
-            String cliente,
-            String direccion,
-            double distanciaKm) {
+            int id,
+            String direccionEntrega) {
 
-        super(codigo, cliente, direccion, distanciaKm);
+        super(
+                id,
+                direccionEntrega
+        );
     }
 
 
-    // Asignación automática para encomiendas.
+    public PedidoEncomienda(
+            int id,
+            String cliente,
+            String direccionEntrega,
+            double distanciaKm) {
+
+        super(
+                id,
+                cliente,
+                direccionEntrega,
+                distanciaKm
+        );
+    }
+
+
     @Override
     public void asignarRepartidor() {
 
@@ -26,9 +41,9 @@ public class PedidoEncomienda extends Pedido {
     }
 
 
-    // Asignación manual especializada para encomiendas.
     @Override
-    public void asignarRepartidor(String nombre) {
+    public void asignarRepartidor(
+            String nombre) {
 
         if (puedeAsignarRepartidor()) {
 
@@ -43,6 +58,7 @@ public class PedidoEncomienda extends Pedido {
     @Override
     public int calcularTiempoEntrega() {
 
-        return 30 + (int) (getDistanciaKm() * 4);
+        return 30
+                + (int) (getDistanciaKm() * 4);
     }
 }
