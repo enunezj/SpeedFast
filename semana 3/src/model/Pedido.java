@@ -5,226 +5,110 @@ import interfaces.Despachable;
 import interfaces.Rastreable;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
+// Clase abstracta que contiene los atributos y comportamientos
+// comunes para todos los tipos de pedidos.
 public abstract class Pedido implements Despachable, Cancelable, Rastreable {
 
-    // Atributos solicitados en la actividad actual.
-    private int id;
-    private String direccionEntrega;
-    private EstadoPedido estado;
-
-    // Atributos conservados de las actividades anteriores.
+    private final int codigo;
     private final String cliente;
+    private final String direccion;
     private final double distanciaKm;
     private String repartidor;
+    private String estado;
 
-    private boolean reservado;
-    private boolean cancelado;
+    private final ArrayList<String> historial;
 
-    private final List<String> historial;
+    // Constructor
+    public Pedido(int codigo, String cliente, String direccion, double distanciaKm) {
 
-
-    // Constructor simplificado para la simulación concurrente.
-    public Pedido(int id, String direccionEntrega) {
-
-        this(
-                id,
-                "Sin cliente registrado",
-                direccionEntrega,
-                0
-        );
-    }
-
-
-    // Constructor conservado de la actividad anterior.
-    public Pedido(
-            int id,
-            String cliente,
-            String direccionEntrega,
-            double distanciaKm) {
-
-        this.historial = new ArrayList<>();
-
-        setId(id);
-        setDireccionEntrega(direccionEntrega);
-
+        this.codigo = codigo;
         this.cliente = cliente;
+        this.direccion = direccion;
         this.distanciaKm = distanciaKm;
 
         this.repartidor = "Sin asignar";
-        this.estado = EstadoPedido.PENDIENTE;
+        this.estado = "Creado";
 
-        this.reservado = false;
-        this.cancelado = false;
-
-        registrarEvento(
-                "Estado inicial: PENDIENTE"
-        );
+        this.historial = new ArrayList<>();
     }
 
 
-    public int getId() {
-
-        return id;
-    }
-
-
-    public final void setId(int id) {
-
-        this.id = id;
-    }
-
-
-    public String getDireccionEntrega() {
-
-        return direccionEntrega;
-    }
-
-
-    public final void setDireccionEntrega(
-            String direccionEntrega) {
-
-        this.direccionEntrega = direccionEntrega;
-    }
-
-
-    public EstadoPedido getEstado() {
-
-        return estado;
-    }
-
-
-    public void setEstado(
-            EstadoPedido nuevoEstado) {
-
-        if (nuevoEstado == null) {
-
-            throw new IllegalArgumentException(
-                    "El estado no puede ser nulo."
-            );
-        }
-
-        this.estado = nuevoEstado;
-
-        registrarEvento(
-                "Estado actualizado a " + nuevoEstado
-        );
-    }
-
-
-    // Firma solicitada expresamente en la actividad.
-    public void setEstado(String nuevoEstado) {
-
-        if (nuevoEstado == null) {
-
-            throw new IllegalArgumentException(
-                    "El estado no puede ser nulo."
-            );
-        }
-
-        EstadoPedido estadoConvertido =
-                EstadoPedido.valueOf(
-                        nuevoEstado
-                                .trim()
-                                .toUpperCase(Locale.ROOT)
-                );
-
-        setEstado(estadoConvertido);
-    }
-
-
+    // Método abstracto.
+    // Cada tipo de pedido tendrá una asignación automática diferente.
     public abstract void asignarRepartidor();
 
 
-    public abstract void asignarRepartidor(
-            String nombre);
-
-
+    // Método abstracto.
+    // Cada tipo de pedido calculará su tiempo de entrega
+    // utilizando una lógica propia.
     public abstract int calcularTiempoEntrega();
 
 
+    // Método para reservar un pedido.
     public void reservar() {
 
-        if (cancelado) {
+        if (estado.equals("Creado")) {
+
+            estado = "Reservado";
+
+            registrarEvento("Pedido reservado");
 
             System.out.println(
-                    "No se puede reservar un pedido cancelado."
+                    "Pedido " + codigo + " reservado correctamente."
+            );
+
+        } else {
+
+            System.out.println(
+                    "El pedido " + codigo + " no se encuentra disponible para reserva."
+            );
+        }
+    }
+
+
+    // SOBRECARGA:
+    // Permite asignar manualmente un repartidor indicando su nombre.
+    public void asignarRepartidor(String nombre) {
+
+        if (estado.equals("Cancelado")) {
+
+            System.out.println(
+                    "No se puede asignar un repartidor a un pedido cancelado."
             );
 
             return;
         }
 
-        if (estado == EstadoPedido.ENTREGADO) {
-
-            System.out.println(
-                    "No se puede reservar un pedido ya entregado."
-            );
-
-            return;
-        }
-
-        if (reservado) {
-
-            System.out.println(
-                    "El pedido "
-                            + id
-                            + " ya se encuentra reservado."
-            );
-
-            return;
-        }
-
-        reservado = true;
+        this.repartidor = nombre;
 
         registrarEvento(
-                "Pedido reservado"
+                "Repartidor asignado manualmente: " + nombre
         );
 
         System.out.println(
-                "Pedido "
-                        + id
-                        + " reservado correctamente."
+                "Repartidor asignado manualmente: " + nombre
         );
     }
 
 
+    // Método implementado en la clase abstracta.
+    // Muestra la información general del pedido.
     public void mostrarResumen() {
 
-        System.out.println(
-                "ID: " + id
-        );
-
-        System.out.println(
-                "Cliente: " + cliente
-        );
-
-        System.out.println(
-                "Dirección de entrega: "
-                        + direccionEntrega
-        );
-
-        System.out.println(
-                "Distancia: "
-                        + distanciaKm
-                        + " km"
-        );
-
-        System.out.println(
-                "Repartidor: "
-                        + repartidor
-        );
-
-        System.out.println(
-                "Estado: "
-                        + estado
-        );
+        System.out.println("Código: " + codigo);
+        System.out.println("Cliente: " + cliente);
+        System.out.println("Dirección: " + direccion);
+        System.out.println("Distancia: " + distanciaKm + " km");
+        System.out.println("Repartidor: " + repartidor);
+        System.out.println("Estado: " + estado);
     }
 
 
-    public void mostrarResumen(
-            boolean mostrarTiempo) {
+    // SOBRECARGA:
+    // Permite mostrar el resumen y, opcionalmente,
+    // el tiempo estimado de entrega.
+    public void mostrarResumen(boolean mostrarTiempo) {
 
         mostrarResumen();
 
@@ -239,10 +123,11 @@ public abstract class Pedido implements Despachable, Cancelable, Rastreable {
     }
 
 
+    // Implementación de la interfaz Despachable.
     @Override
     public void despachar() {
 
-        if (cancelado) {
+        if (estado.equals("Cancelado")) {
 
             System.out.println(
                     "No se puede despachar un pedido cancelado."
@@ -251,180 +136,111 @@ public abstract class Pedido implements Despachable, Cancelable, Rastreable {
             return;
         }
 
-        if (estado == EstadoPedido.ENTREGADO) {
+        if (estado.equals("Creado")) {
 
             System.out.println(
-                    "El pedido "
-                            + id
-                            + " ya fue entregado."
+                    "El pedido debe ser reservado antes de ser despachado."
             );
 
             return;
         }
 
-        if (estado == EstadoPedido.EN_REPARTO) {
+        if (estado.equals("Despachado")) {
 
             System.out.println(
-                    "El pedido "
-                            + id
-                            + " ya está en reparto."
+                    "El pedido " + codigo + " ya fue despachado."
             );
 
             return;
         }
 
-        if (repartidor.equals("Sin asignar")) {
+        estado = "Despachado";
 
-            System.out.println(
-                    "El pedido debe tener un repartidor asignado."
-            );
-
-            return;
-        }
-
-        setEstado("EN_REPARTO");
+        registrarEvento("Pedido despachado");
 
         System.out.println(
-                "Pedido "
-                        + id
-                        + " enviado a reparto."
+                "Pedido " + codigo + " despachado correctamente."
         );
     }
 
 
+    // Implementación de la interfaz Cancelable.
     @Override
     public void cancelar() {
 
-        if (estado == EstadoPedido.EN_REPARTO) {
+        if (estado.equals("Despachado")) {
 
             System.out.println(
-                    "No se puede cancelar un pedido que está en reparto."
+                    "No se puede cancelar un pedido que ya fue despachado."
             );
 
             return;
         }
 
-        if (estado == EstadoPedido.ENTREGADO) {
+        if (estado.equals("Cancelado")) {
 
             System.out.println(
-                    "No se puede cancelar un pedido entregado."
+                    "El pedido " + codigo + " ya se encuentra cancelado."
             );
 
             return;
         }
 
-        if (cancelado) {
+        estado = "Cancelado";
 
-            System.out.println(
-                    "El pedido "
-                            + id
-                            + " ya se encuentra cancelado."
-            );
-
-            return;
-        }
-
-        cancelado = true;
-
-        registrarEvento(
-                "Pedido cancelado"
-        );
+        registrarEvento("Pedido cancelado");
 
         System.out.println(
-                "Pedido "
-                        + id
-                        + " cancelado correctamente."
+                "Pedido " + codigo + " cancelado correctamente."
         );
     }
 
 
+    // Implementación de la interfaz Rastreable.
     @Override
     public void verHistorial() {
 
         System.out.println(
-                "Historial del pedido #"
-                        + id
-                        + ":"
+                "\nHistorial del pedido " + codigo + ":"
         );
+
+        if (historial.isEmpty()) {
+
+            System.out.println("- No existen movimientos registrados.");
+
+            return;
+        }
 
         for (String evento : historial) {
 
-            System.out.println(
-                    "- " + evento
-            );
+            System.out.println("- " + evento);
         }
     }
 
 
-    protected boolean puedeAsignarRepartidor() {
-
-        if (cancelado) {
-
-            System.out.println(
-                    "No se puede asignar un repartidor "
-                            + "a un pedido cancelado."
-            );
-
-            return false;
-        }
-
-        if (estado == EstadoPedido.ENTREGADO) {
-
-            System.out.println(
-                    "No se puede cambiar el repartidor "
-                            + "de un pedido entregado."
-            );
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    protected void registrarAsignacion(
-            String nombreRepartidor,
-            String tipoAsignacion) {
-
-        this.repartidor = nombreRepartidor;
-
-        registrarEvento(
-                "Repartidor asignado "
-                        + tipoAsignacion
-                        + ": "
-                        + nombreRepartidor
-        );
-
-        System.out.println(
-                "Repartidor asignado "
-                        + tipoAsignacion
-                        + ": "
-                        + nombreRepartidor
-        );
-    }
-
-
-    protected void registrarEvento(
-            String evento) {
+    // Método protegido que permite a las clases hijas
+    // agregar eventos al historial.
+    protected void registrarEvento(String evento) {
 
         historial.add(evento);
     }
 
 
+    // Getter protegido utilizado por las clases hijas
+    // para calcular el tiempo de entrega.
     protected double getDistanciaKm() {
 
         return distanciaKm;
     }
 
 
-    @Override
-    public String toString() {
+    // Setter protegido utilizado por las clases hijas
+    // para realizar la asignación automática.
+    protected void setRepartidor(String repartidor) {
 
-        return "Pedido{" +
-                "id=" + id +
-                ", direccionEntrega='" +
-                direccionEntrega + '\'' +
-                ", estado=" + estado +
-                '}';
+        this.repartidor = repartidor;
     }
+
+
+
 }

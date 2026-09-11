@@ -1,64 +1,42 @@
 package model;
 
+// Representa el envío de una encomienda.
 public class PedidoEncomienda extends Pedido {
 
     public PedidoEncomienda(
-            int id,
-            String direccionEntrega) {
-
-        super(
-                id,
-                direccionEntrega
-        );
-    }
-
-
-    public PedidoEncomienda(
-            int id,
+            int codigo,
             String cliente,
-            String direccionEntrega,
+            String direccion,
             double distanciaKm) {
 
-        super(
-                id,
-                cliente,
-                direccionEntrega,
-                distanciaKm
-        );
+        super(codigo, cliente, direccion, distanciaKm);
     }
 
 
+    // SOBRESCRITURA:
+    // Las encomiendas utilizan automáticamente
+    // un repartidor en camioneta.
     @Override
     public void asignarRepartidor() {
 
-        if (puedeAsignarRepartidor()) {
+        String nombre = "Pedro - Camioneta";
 
-            registrarAsignacion(
-                    "Pedro - Camioneta",
-                    "automáticamente"
-            );
-        }
+        setRepartidor(nombre);
+
+        registrarEvento(
+                "Repartidor automático asignado: " + nombre
+        );
+
+        System.out.println(
+                "Repartidor automático asignado: " + nombre
+        );
     }
 
 
-    @Override
-    public void asignarRepartidor(
-            String nombre) {
-
-        if (puedeAsignarRepartidor()) {
-
-            registrarAsignacion(
-                    nombre + " - Camioneta",
-                    "manualmente"
-            );
-        }
-    }
-
-
+    // Regla específica para encomiendas.
     @Override
     public int calcularTiempoEntrega() {
 
-        return 30
-                + (int) (getDistanciaKm() * 4);
+        return 30 + (int) (getDistanciaKm() * 4);
     }
 }

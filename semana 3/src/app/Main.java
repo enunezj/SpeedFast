@@ -1,311 +1,156 @@
 package app;
 
-import concurrencia.Repartidor;
-import concurrencia.ZonaDeCarga;
-import controller.ControladorDeEnvios;
-import model.EstadoPedido;
 import model.Pedido;
 import model.PedidoComida;
 import model.PedidoEncomienda;
 import model.PedidoExpress;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        System.out.println(
-                "======================================"
+        // Lista general de pedidos que fueron despachados.
+        ArrayList<Pedido> historialEntregas = new ArrayList<>();
+
+        System.out.println("==================================");
+        System.out.println("        SISTEMA SPEEDFAST");
+        System.out.println("==================================");
+
+
+        /*
+         * CASO 1: Pedido de comida.
+         * Asignación automática y despacho.
+         */
+
+        System.out.println("\n----------------------------------");
+        System.out.println("CASO 1 - PEDIDO DE COMIDA");
+        System.out.println("----------------------------------");
+
+        Pedido comida = new PedidoComida(
+                101,
+                "Ana Torres",
+                "Av. Central 123",
+                4
         );
+
+        comida.mostrarResumen();
+
+        System.out.println("\nReservando pedido...");
+        comida.reservar();
+
+        System.out.println("\nAsignando repartidor automáticamente...");
+        comida.asignarRepartidor();
+
         System.out.println(
-                " SISTEMA SPEEDFAST"
+                "Tiempo estimado de entrega: "
+                        + comida.calcularTiempoEntrega()
+                        + " minutos."
         );
+
+        System.out.println("\nDespachando pedido...");
+        comida.despachar();
+
+        // Se agrega al historial general porque fue despachado.
+        historialEntregas.add(comida);
+
+        comida.verHistorial();
+
+
+        /*
+         * CASO 2: Pedido de encomienda.
+         * Asignación manual y despacho.
+         */
+
+        System.out.println("\n==================================");
+        System.out.println("CASO 2 - PEDIDO DE ENCOMIENDA");
+        System.out.println("==================================");
+
+        Pedido encomienda = new PedidoEncomienda(
+                102,
+                "Luis Martinez",
+                "Los Carrera 550",
+                5
+        );
+
+        encomienda.mostrarResumen();
+
+        System.out.println("\nReservando pedido...");
+        encomienda.reservar();
+
+        System.out.println("\nAsignando repartidor manualmente...");
+        encomienda.asignarRepartidor("Daniel - Camioneta");
+
         System.out.println(
-                "======================================\n"
+                "Tiempo estimado de entrega: "
+                        + encomienda.calcularTiempoEntrega()
+                        + " minutos."
         );
 
-        /*
-         * Se conserva una prueba breve
-         * del polimorfismo trabajado anteriormente.
-         */
-        probarPolimorfismo();
+        System.out.println("\nDespachando pedido...");
+        encomienda.despachar();
 
-        ControladorDeEnvios controlador =
-                new ControladorDeEnvios();
+        // Se agrega al historial general porque fue despachado.
+        historialEntregas.add(encomienda);
 
-        /*
-         * Recurso compartido por
-         * todos los repartidores.
-         */
-        ZonaDeCarga zonaDeCarga =
-                new ZonaDeCarga();
+        encomienda.verHistorial();
+
 
         /*
-         * Se crean cinco pedidos.
+         * CASO 3: Pedido express.
+         * Asignación automática y cancelación.
          */
-        List<Pedido> pedidos =
-                crearPedidos();
 
-        System.out.println();
+        System.out.println("\n==================================");
+        System.out.println("CASO 3 - PEDIDO EXPRESS");
+        System.out.println("==================================");
+
+        Pedido express = new PedidoExpress(
+                103,
+                "Maria Silva",
+                "Providencia 450",
+                3
+        );
+
+        express.mostrarResumen(true);
+
+        System.out.println("\nReservando pedido...");
+        express.reservar();
+
+        System.out.println("\nAsignando repartidor automáticamente...");
+        express.asignarRepartidor();
+
+        System.out.println(
+                "Tiempo estimado de entrega: "
+                        + express.calcularTiempoEntrega()
+                        + " minutos."
+        );
+
+        System.out.println("\nEl cliente solicita cancelar el pedido.");
+        express.cancelar();
+
+        express.verHistorial();
+
 
         /*
-         * Los cinco pedidos llegan
-         * a la misma zona de carga.
+         * HISTORIAL GENERAL DE ENTREGAS
          */
-        for (Pedido pedido : pedidos) {
-            zonaDeCarga.agregarPedido(
-                    pedido
-            );
+
+        System.out.println("\n==================================");
+        System.out.println(" HISTORIAL DE ENTREGAS REALIZADAS");
+        System.out.println("==================================");
+
+        for (Pedido pedido : historialEntregas) {
+
+            pedido.mostrarResumen();
+
+            System.out.println("----------------------------------");
         }
 
-        /*
-         * Los tres repartidores comparten
-         * la misma instancia de ZonaDeCarga.
-         */
-        Repartidor repartidor1 =
-                new Repartidor(
-                        "Carlos",
-                        zonaDeCarga
-                );
 
-        Repartidor repartidor2 =
-                new Repartidor(
-                        "Sofia",
-                        zonaDeCarga
-                );
-
-        Repartidor repartidor3 =
-                new Repartidor(
-                        "Pedro",
-                        zonaDeCarga
-                );
-
-        /*
-         * Cada repartidor se ejecuta
-         * mediante un hilo independiente.
-         */
-        Thread hilo1 =
-                new Thread(
-                        repartidor1,
-                        "Hilo-Carlos"
-                );
-
-        Thread hilo2 =
-                new Thread(
-                        repartidor2,
-                        "Hilo-Sofia"
-                );
-
-        Thread hilo3 =
-                new Thread(
-                        repartidor3,
-                        "Hilo-Pedro"
-                );
-
-        System.out.println(
-                "\n======================================"
-        );
-        System.out.println(
-                " INICIO DE LAS ENTREGAS"
-        );
-        System.out.println(
-                "======================================"
-        );
-
-        /*
-         * Los tres hilos comienzan
-         * su ejecución concurrente.
-         */
-        hilo1.start();
-        hilo2.start();
-        hilo3.start();
-
-        try {
-
-            /*
-             * Main espera a que los tres
-             * hilos finalicen su trabajo.
-             */
-            hilo1.join();
-            hilo2.join();
-            hilo3.join();
-
-        } catch (InterruptedException e) {
-
-            Thread.currentThread().interrupt();
-
-            System.out.println(
-                    "El proceso principal fue interrumpido."
-            );
-
-            return;
-        }
-
-        /*
-         * El controlador registra únicamente
-         * los pedidos efectivamente entregados.
-         */
-        controlador.registrarEntregas(
-                pedidos
-        );
-
-        if (zonaDeCarga.estaVacia()) {
-
-            System.out.println(
-                    "\n[Zona de carga vacía]"
-            );
-        }
-
-        controlador.mostrarHistorialEntregas();
-
-        /*
-         * Se comprueba el resultado antes
-         * de mostrar el mensaje final.
-         */
-        if (todosLosPedidosEntregados(pedidos)) {
-
-            System.out.println(
-                    "\n======================================"
-            );
-            System.out.println(
-                    "Todos los pedidos han sido entregados correctamente"
-            );
-            System.out.println(
-                    "======================================"
-            );
-
-        } else {
-
-            System.out.println(
-                    "\n======================================"
-            );
-            System.out.println(
-                    "Existen pedidos que no pudieron ser entregados."
-            );
-            System.out.println(
-                    "======================================"
-            );
-        }
-    }
-
-    private static List<Pedido> crearPedidos() {
-
-        List<Pedido> pedidos =
-                new ArrayList<>();
-
-        pedidos.add(
-                new PedidoComida(
-                        1,
-                        "Santiago Centro"
-                )
-        );
-
-        pedidos.add(
-                new PedidoEncomienda(
-                        2,
-                        "Providencia"
-                )
-        );
-
-        pedidos.add(
-                new PedidoExpress(
-                        3,
-                        "Ñuñoa"
-                )
-        );
-
-        pedidos.add(
-                new PedidoComida(
-                        4,
-                        "Recoleta"
-                )
-        );
-
-        pedidos.add(
-                new PedidoEncomienda(
-                        5,
-                        "Las Condes"
-                )
-        );
-
-        return pedidos;
-    }
-
-    private static boolean todosLosPedidosEntregados(
-            List<Pedido> pedidos) {
-
-        for (Pedido pedido : pedidos) {
-
-            if (pedido.getEstado()
-                    != EstadoPedido.ENTREGADO) {
-
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static void probarPolimorfismo() {
-
-        System.out.println(
-                "--- VALIDACIÓN DE POLIMORFISMO ---"
-        );
-
-        /*
-         * Ambas referencias son Pedidos,
-         * aunque los objetos reales son diferentes.
-         */
-        Pedido pruebaAutomatica =
-                new PedidoComida(
-                        900,
-                        "Cliente prueba",
-                        "Prueba automática",
-                        2
-                );
-
-        Pedido pruebaManual =
-                new PedidoEncomienda(
-                        901,
-                        "Cliente prueba",
-                        "Prueba manual",
-                        2
-                );
-
-        System.out.println(
-                "\nAsignación automática:"
-        );
-
-        pruebaAutomatica.reservar();
-
-        pruebaAutomatica
-                .asignarRepartidor();
-
-        pruebaAutomatica
-                .mostrarResumen();
-
-        System.out.println(
-                "\nAsignación manual:"
-        );
-
-        pruebaManual.reservar();
-
-        pruebaManual
-                .asignarRepartidor(
-                        "Carlos"
-                );
-
-        pruebaManual
-                .mostrarResumen(true);
-
-        pruebaManual.cancelar();
-
-        pruebaManual.verHistorial();
-
-        System.out.println(
-                "-----------------------------------\n"
-        );
+        System.out.println("\n==================================");
+        System.out.println("       FIN DE LA SIMULACION");
+        System.out.println("==================================");
     }
 }

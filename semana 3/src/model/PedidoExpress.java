@@ -1,64 +1,41 @@
 package model;
 
+// Representa una compra o pedido express.
 public class PedidoExpress extends Pedido {
 
     public PedidoExpress(
-            int id,
-            String direccionEntrega) {
-
-        super(
-                id,
-                direccionEntrega
-        );
-    }
-
-
-    public PedidoExpress(
-            int id,
+            int codigo,
             String cliente,
-            String direccionEntrega,
+            String direccion,
             double distanciaKm) {
 
-        super(
-                id,
-                cliente,
-                direccionEntrega,
-                distanciaKm
-        );
+        super(codigo, cliente, direccion, distanciaKm);
     }
 
 
+    // SOBRESCRITURA:
+    // Los pedidos express utilizan un repartidor especializado.
     @Override
     public void asignarRepartidor() {
 
-        if (puedeAsignarRepartidor()) {
+        String nombre = "Sofia - Express";
 
-            registrarAsignacion(
-                    "Sofia - Express",
-                    "automáticamente"
-            );
-        }
+        setRepartidor(nombre);
+
+        registrarEvento(
+                "Repartidor automático asignado: " + nombre
+        );
+
+        System.out.println(
+                "Repartidor automático asignado: " + nombre
+        );
     }
 
 
-    @Override
-    public void asignarRepartidor(
-            String nombre) {
-
-        if (puedeAsignarRepartidor()) {
-
-            registrarAsignacion(
-                    nombre + " - Express",
-                    "manualmente"
-            );
-        }
-    }
-
-
+    // El pedido express tiene una entrega más rápida.
     @Override
     public int calcularTiempoEntrega() {
 
-        return 10
-                + (int) (getDistanciaKm() * 2);
+        return 10 + (int) (getDistanciaKm() * 2);
     }
 }
