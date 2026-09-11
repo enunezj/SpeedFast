@@ -700,6 +700,6 @@ https://github.com/enunezj/SpeedFast
 
 ---
 
-## Fecha de actualización
+## Fecha de Entrega
 
-11/09/2026
+14/09/2026
